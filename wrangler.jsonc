@@ -3,11 +3,14 @@
 	"name": "my-emdash-site",
 	"main": "./src/worker.ts",
 	"compatibility_date": "2026-02-24",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "my-emdash-site",
+			"database_id": "fed476c2-d9ab-4c10-9e7d-d39521392dfa",
 		},
 	],
 	"r2_buckets": [
@@ -20,6 +23,8 @@
 	// "worker_loaders": [{ "binding": "LOADER" }],
 	// General maintenance cron trigger
 	"triggers": {
-		"crons": ["* * * * *"],
+		"crons": [
+			"* * * * *"
+		],
 	},
 }
