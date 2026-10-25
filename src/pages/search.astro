@@ -1,0 +1,24 @@
+---
+import LiveSearch from "emdash/ui/search";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Tìm kiếm" description="Tìm kiếm bài viết và trang thông tin trên Dòng Tin">
+	<div class="container page-shell search-page">
+		<p class="eyebrow">Kho nội dung</p>
+		<h1 class="page-heading">Tìm kiếm</h1>
+		<p>Nhập tiêu đề, chủ đề hoặc từ khóa bạn quan tâm.</p>
+		<LiveSearch
+			placeholder="Tìm bài viết..."
+			collections={["articles", "pages"]}
+			routeMap={{ articles: "/articles/:slug", pages: "/:slug" }}
+			class="search-page__form"
+		/>
+	</div>
+</Base>
+
+<style>
+	.search-page { min-height: 55vh; max-width: 900px; }
+	.search-page > p { color: var(--color-muted); }
+	.search-page :global(.search-page__form) { width: 100%; margin-top: 2rem; }
+</style>

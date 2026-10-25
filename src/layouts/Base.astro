@@ -1,9 +1,13 @@
 ---
-import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
-import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
+import {
+	getMenuWithCacheHint,
+	getSiteSettingsWithCacheHint,
+} from "emdash";
+import { EmDashBodyEnd, EmDashBodyStart, EmDashHead } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import LiveSearch from "emdash/ui/search";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import "../styles/theme.css";
 
 interface Props {
 	title: string;
@@ -11,36 +15,40 @@ interface Props {
 	description?: string | null;
 	image?: string | null;
 	canonical?: string | null;
-	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
 }
 
-const { title, pageTitle, description, image, canonical, content } =
-	Astro.props;
-const [settingsResult, menuResult] = await Promise.all([
+const { title, pageTitle, description, image, canonical, content } = Astro.props;
+const [settingsResult, primaryMenuResult, footerMenuResult] = await Promise.all([
 	getSiteSettingsWithCacheHint(),
 	getMenuWithCacheHint("primary"),
+	getMenuWithCacheHint("footer"),
 ]);
+
 if (Astro.cache?.enabled) {
 	Astro.cache.set(settingsResult.cacheHint);
-	Astro.cache.set(menuResult.cacheHint);
+	Astro.cache.set(primaryMenuResult.cacheHint);
+	Astro.cache.set(footerMenuResult.cacheHint);
 }
 
-const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(
-	settingsResult.data,
-);
+const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(settingsResult.data);
 const titleIncludesSiteName =
-	title === siteTitle ||
-	title.endsWith(` | ${siteTitle}`) ||
-	title.endsWith(` — ${siteTitle}`);
+	title === siteTitle || title.endsWith(` | ${siteTitle}`) || title.endsWith(` — ${siteTitle}`);
 const fullTitle = titleIncludesSiteName ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
-const menu = menuResult.data;
+const primaryMenu = primaryMenuResult.data;
+const footerMenu = footerMenuResult.data;
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+const isCurrentMenuItem = (url: string) => {
+	if (!url.startsWith("/")) return false;
+	const itemPath = new URL(url, Astro.url.origin).pathname.replace(/\/$/, "") || "/";
+	return itemPath === currentPath;
+};
 
 const pageCtx = createPublicPageContext({
 	Astro,
 	kind: content ? "content" : "custom",
-	pageType: "website",
+	pageType: content?.collection === "articles" ? "article" : "website",
 	title: fullTitle,
 	pageTitle: pageTitle ?? title,
 	description: pageDescription,
@@ -52,54 +60,140 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content={pageDescription} />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
 	</head>
 	<body>
 		<EmDashBodyStart page={pageCtx} />
+		<a class="skip-link" href="#main-content">Bỏ qua đến nội dung chính</a>
 
-		<header>
-			<nav>
-				<a href="/">
+		<header class="site-header">
+			<div class="utility-bar">
+				<div class="container utility-bar__inner">
+					<span>{new Date().toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })}</span>
+					<a href="/region/quoc-te">Tin quốc tế</a>
+					<a href="/rss.xml">RSS</a>
+				</div>
+			</div>
+
+			<div class="container masthead">
+				<a class="brand" href="/" aria-label={`${siteTitle} — Trang chủ`}>
 					{
 						siteLogo ? (
-							<img
-								src={siteLogo.url}
-								alt={siteLogo.alt || siteTitle}
-								style="height:48px;width:auto;margin:-8px 0;display:block;"
-							/>
+							<img src={siteLogo.url} alt={siteLogo.alt || siteTitle} />
 						) : (
-							siteTitle
+							<span>{siteTitle}</span>
 						)
 					}
 				</a>
-				{
-					menu?.items.map((item) => (
-						<a
-							href={item.url}
-							target={item.target}
-							rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-						>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder="Search..." collections={["posts", "pages"]} />
+				<p>{siteTagline}</p>
+				<LiveSearch
+					placeholder="Tìm bài viết..."
+					collections={["articles", "pages"]}
+					routeMap={{ articles: "/articles/:slug", pages: "/:slug" }}
+					class="site-search"
+				/>
+			</div>
+
+			<nav class="primary-nav" aria-label="Điều hướng chính">
+				<div class="container primary-nav__inner">
+					{
+						primaryMenu?.items.map((item) => (
+							<a
+								href={item.url}
+								target={item.target}
+								rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+								aria-current={isCurrentMenuItem(item.url) ? "page" : undefined}
+							>
+								{item.label}
+							</a>
+						))
+					}
+				</div>
 			</nav>
 		</header>
 
-		<main>
+		<main id="main-content">
 			<slot />
 		</main>
 
+		<footer class="site-footer">
+			<div class="container site-footer__grid">
+				<div>
+					<a class="footer-brand" href="/">{siteTitle}</a>
+					<p>{siteTagline}</p>
+				</div>
+				<nav aria-label="Điều hướng cuối trang">
+					{
+						footerMenu?.items.map((item) => (
+							<a
+								href={item.url}
+								target={item.target}
+								rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+							>{item.label}</a>
+						))
+					}
+				</nav>
+			</div>
+			<div class="container site-footer__bottom">
+				<span>© {new Date().getFullYear()} {siteTitle}</span>
+				<span>Vận hành bằng Astro + EmDash</span>
+			</div>
+		</footer>
+
 		<EmDashBodyEnd page={pageCtx} />
 
-		<footer>
-			copy right @@@
-		</footer>
+		<script>
+			document.querySelectorAll<HTMLInputElement>(".emdash-live-search-input").forEach((input, index) => {
+				input.id ||= `emdash-search-${index + 1}`;
+				input.name ||= "q";
+			});
+		</script>
 	</body>
 </html>
+
+<style>
+	.skip-link { position: fixed; z-index: 1000; top: .75rem; left: .75rem; padding: .65rem 1rem; transform: translateY(-200%); border-radius: var(--radius-sm); background: var(--color-ink); color: white; font-weight: 800; text-decoration: none; }
+	.skip-link:focus { transform: translateY(0); }
+	.site-header { border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+	.utility-bar { background: var(--color-ink); color: white; font-size: .78rem; }
+	.utility-bar__inner { display: flex; gap: 1.25rem; align-items: center; min-height: 34px; }
+	.utility-bar a { color: white; text-decoration: none; }
+	.utility-bar span { margin-right: auto; text-transform: capitalize; }
+	.masthead { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; padding-block: 1.5rem; }
+	.brand { color: var(--color-ink); font-family: var(--font-display); font-size: clamp(2.2rem, 6vw, 4.5rem); font-weight: 900; letter-spacing: -.06em; line-height: .9; text-decoration: none; }
+	.brand img { display: block; max-height: 70px; width: auto; }
+	.masthead > p { max-width: 300px; margin: 0; color: var(--color-muted); font-family: var(--font-display); font-style: italic; }
+	.masthead :global(.site-search) { justify-self: end; }
+	.primary-nav { border-top: 1px solid var(--color-border); }
+	.primary-nav__inner { display: flex; gap: 0; overflow-x: auto; }
+	.primary-nav a { flex: 0 0 auto; padding: .85rem 1rem; border-right: 1px solid var(--color-border); color: var(--color-ink); font-size: .86rem; font-weight: 800; text-decoration: none; text-transform: uppercase; }
+	.primary-nav a:first-child { border-left: 1px solid var(--color-border); }
+	.primary-nav a:hover { background: var(--color-accent); color: white; }
+	.primary-nav a[aria-current="page"] { background: var(--color-ink); color: white; }
+	.site-footer { margin-top: 5rem; padding-top: 3rem; background: var(--color-ink); color: white; }
+	.site-footer__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding-bottom: 2.5rem; }
+	.footer-brand { color: white; font-family: var(--font-display); font-size: 2.2rem; font-weight: 900; text-decoration: none; }
+	.site-footer p { max-width: 480px; margin: .5rem 0 0; color: #c9c7bf; }
+	.site-footer nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 2rem; align-content: start; }
+	.site-footer nav a { color: white; text-decoration: none; }
+	.site-footer__bottom { display: flex; justify-content: space-between; gap: 1rem; padding-block: 1rem; border-top: 1px solid #3f3e39; color: #a9a79e; font-size: .8rem; }
+
+	@media (max-width: 820px) {
+		.masthead { grid-template-columns: 1fr; gap: .75rem; }
+		.masthead :global(.site-search) { justify-self: stretch; }
+		.site-footer__grid { grid-template-columns: 1fr; }
+	}
+
+	@media (max-width: 520px) {
+		.utility-bar__inner a { display: none; }
+		.site-footer nav { grid-template-columns: 1fr; }
+		.site-footer__bottom { flex-direction: column; }
+	}
+</style>

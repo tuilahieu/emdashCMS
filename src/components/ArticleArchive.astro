@@ -1,0 +1,46 @@
+---
+import type { ContentEntry, InferCollectionData } from "emdash";
+import ArticleCard from "./ArticleCard.astro";
+import NewsSidebar from "./NewsSidebar.astro";
+import Base from "../layouts/Base.astro";
+
+interface Props {
+	title: string;
+	eyebrow: string;
+	description: string;
+	articles: ContentEntry<InferCollectionData<"articles">>[];
+	firstPageHref?: string;
+	nextPageHref?: string;
+}
+
+const { title, eyebrow, description, articles, firstPageHref, nextPageHref } = Astro.props;
+---
+
+<Base title={title} description={description}>
+	<div class="container page-shell">
+		<p class="eyebrow">{eyebrow}</p>
+		<h1 class="page-heading">{title}</h1>
+		<div class="content-with-sidebar">
+			<section>
+				{
+					articles.length === 0 ? (
+						<div class="empty-state"><p>Chưa có bài viết trong mục này.</p></div>
+					) : (
+						<div class="article-grid">
+							{articles.map((article) => <ArticleCard article={article} />)}
+						</div>
+					)
+				}
+				{
+					(firstPageHref || nextPageHref) && (
+						<nav class="pagination" aria-label="Phân trang">
+							{firstPageHref && <a href={firstPageHref}>Trang đầu</a>}
+							{nextPageHref && <a href={nextPageHref}>Trang tiếp</a>}
+						</nav>
+					)
+				}
+			</section>
+			<NewsSidebar />
+		</div>
+	</div>
+</Base>

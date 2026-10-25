@@ -1,0 +1,41 @@
+---
+import { getEmDashCollection } from "emdash";
+import ArticleCard from "../../components/ArticleCard.astro";
+import NewsSidebar from "../../components/NewsSidebar.astro";
+import Base from "../../layouts/Base.astro";
+
+const cursor = Astro.url.searchParams.get("cursor") || undefined;
+const { entries: articles, cacheHint, nextCursor } = await getEmDashCollection("articles", {
+	status: "published",
+	orderBy: { published_at: "desc" },
+	limit: 12,
+	cursor,
+});
+
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+---
+
+<Base title="Tin mới nhất" description="Các bài viết mới nhất từ Dòng Tin">
+	<div class="container page-shell">
+		<p class="eyebrow">Cập nhật liên tục</p>
+		<h1 class="page-heading">Tin mới nhất</h1>
+		<div class="content-with-sidebar">
+			<section>
+				{
+					articles.length === 0 ? (
+						<div class="empty-state"><p>Chưa có bài viết nào được xuất bản.</p></div>
+					) : (
+						<div class="article-grid">
+							{articles.map((article) => <ArticleCard article={article} />)}
+						</div>
+					)
+				}
+				<nav class="pagination" aria-label="Phân trang">
+					{cursor && <a href="/articles">Trang đầu</a>}
+					{nextCursor && <a href={`/articles?cursor=${encodeURIComponent(nextCursor)}`}>Trang tiếp</a>}
+				</nav>
+			</section>
+			<NewsSidebar />
+		</div>
+	</div>
+</Base>

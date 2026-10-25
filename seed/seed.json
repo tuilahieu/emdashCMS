@@ -2,52 +2,33 @@
   "$schema": "https://emdashcms.com/seed.schema.json",
   "version": "1",
   "meta": {
-    "name": "Starter",
-    "description": "A minimal EmDash starter with posts and pages",
-    "author": "EmDash"
+    "name": "Dong Tin Newsroom",
+    "description": "A Vietnamese digital newsroom starter built with EmDash and Astro",
+    "author": "Dòng Tin"
   },
   "settings": {
-    "title": "My Site222",
-    "tagline": "Built with EmDash"
+    "title": "Dòng Tin",
+    "tagline": "Tin tức rõ ràng, đáng tin cậy và gần gũi",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "dateFormat": "dd/MM/yyyy"
   },
   "collections": [
     {
-      "slug": "posts",
-      "label": "Posts",
-      "labelSingular": "Post",
-      "urlPattern": "/posts/{slug}",
-      "supports": [
-        "drafts",
-        "revisions",
-        "preview",
-        "scheduling",
-        "search",
-        "seo"
-      ],
+      "slug": "articles",
+      "label": "Articles",
+      "labelSingular": "Article",
+      "urlPattern": "/articles/{slug}",
+      "supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
       "fields": [
-        {
-          "slug": "title",
-          "label": "Title",
-          "type": "string",
-          "required": true,
-          "searchable": true
-        },
-        {
-          "slug": "featured_image",
-          "label": "Featured Image",
-          "type": "image"
-        },
-        {
-          "slug": "content",
-          "label": "Content",
-          "type": "portableText",
-          "searchable": true
-        },
-        {
-          "slug": "excerpt",
-          "label": "Excerpt",
-          "type": "text"
-        }
+        { "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+        { "slug": "excerpt", "label": "Excerpt", "type": "text", "required": true, "searchable": true },
+        { "slug": "featured_image", "label": "Featured Image", "type": "image" },
+        { "slug": "content", "label": "Content", "type": "portableText", "required": true, "searchable": true },
+        { "slug": "is_breaking", "label": "Breaking News", "type": "boolean" },
+        { "slug": "is_featured", "label": "Featured on Homepage", "type": "boolean" },
+        { "slug": "location", "label": "Location", "type": "string" },
+        { "slug": "source_name", "label": "Source Name", "type": "string" },
+        { "slug": "source_url", "label": "Source URL", "type": "url" }
       ]
     },
     {
@@ -57,19 +38,8 @@
       "urlPattern": "/{slug}",
       "supports": ["drafts", "revisions", "preview", "search", "seo"],
       "fields": [
-        {
-          "slug": "title",
-          "label": "Title",
-          "type": "string",
-          "required": true,
-          "searchable": true
-        },
-        {
-          "slug": "content",
-          "label": "Content",
-          "type": "portableText",
-          "searchable": true
-        }
+        { "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+        { "slug": "content", "label": "Content", "type": "portableText", "required": true, "searchable": true }
       ]
     }
   ],
@@ -79,16 +49,26 @@
       "label": "Categories",
       "labelSingular": "Category",
       "hierarchical": true,
-      "collections": ["posts"],
+      "collections": ["articles"],
       "terms": [
-        {
-          "slug": "general",
-          "label": "General"
-        },
-        {
-          "slug": "updates",
-          "label": "Updates"
-        }
+        { "slug": "thoi-su", "label": "Thời sự" },
+        { "slug": "kinh-te", "label": "Kinh tế" },
+        { "slug": "xa-hoi", "label": "Xã hội" },
+        { "slug": "doi-song", "label": "Đời sống" },
+        { "slug": "cong-nghe", "label": "Công nghệ" },
+        { "slug": "the-thao", "label": "Thể thao" },
+        { "slug": "giai-tri", "label": "Giải trí" }
+      ]
+    },
+    {
+      "name": "region",
+      "label": "Regions",
+      "labelSingular": "Region",
+      "hierarchical": false,
+      "collections": ["articles"],
+      "terms": [
+        { "slug": "viet-nam", "label": "Việt Nam" },
+        { "slug": "quoc-te", "label": "Quốc tế" }
       ]
     },
     {
@@ -96,16 +76,13 @@
       "label": "Tags",
       "labelSingular": "Tag",
       "hierarchical": false,
-      "collections": ["posts"],
+      "collections": ["articles"],
       "terms": [
-        {
-          "slug": "starter",
-          "label": "Starter"
-        },
-        {
-          "slug": "example",
-          "label": "Example"
-        }
+        { "slug": "thi-truong", "label": "Thị trường" },
+        { "slug": "tri-tue-nhan-tao", "label": "Trí tuệ nhân tạo" },
+        { "slug": "moi-truong", "label": "Môi trường" },
+        { "slug": "giao-duc", "label": "Giáo dục" },
+        { "slug": "bong-da", "label": "Bóng đá" }
       ]
     }
   ],
@@ -114,126 +91,283 @@
       "name": "primary",
       "label": "Primary Navigation",
       "items": [
-        {
-          "type": "custom",
-          "label": "Home",
-          "url": "/"
-        },
-        {
-          "type": "custom",
-          "label": "Posts",
-          "url": "/posts"
-        },
-        {
-          "type": "custom",
-          "label": "About",
-          "url": "/about"
-        }
+        { "type": "custom", "label": "Trang chủ", "url": "/" },
+        { "type": "custom", "label": "Tin mới", "url": "/articles" },
+        { "type": "custom", "label": "Thời sự", "url": "/category/thoi-su" },
+        { "type": "custom", "label": "Kinh tế", "url": "/category/kinh-te" },
+        { "type": "custom", "label": "Đời sống", "url": "/category/doi-song" },
+        { "type": "custom", "label": "Công nghệ", "url": "/category/cong-nghe" }
+      ]
+    },
+    {
+      "name": "footer",
+      "label": "Footer Navigation",
+      "items": [
+        { "type": "custom", "label": "Giới thiệu", "url": "/about" },
+        { "type": "custom", "label": "Nguyên tắc biên tập", "url": "/editorial-policy" },
+        { "type": "custom", "label": "Liên hệ", "url": "/contact" },
+        { "type": "custom", "label": "RSS", "url": "/rss.xml" }
       ]
     }
   ],
-  "widgetAreas": [
+  "bylines": [
+    { "id": "byline-newsroom", "slug": "ban-bien-tap", "displayName": "Ban biên tập Dòng Tin" },
+    { "id": "byline-economy", "slug": "ban-kinh-te", "displayName": "Ban Kinh tế" },
+    { "id": "byline-technology", "slug": "ban-cong-nghe", "displayName": "Ban Công nghệ" }
+  ],
+  "sections": [
     {
-      "name": "sidebar",
-      "label": "Sidebar",
-      "description": "Sidebar widget area",
-      "widgets": [
+      "slug": "source-note",
+      "title": "Ghi chú nguồn tin",
+      "description": "Mẫu ghi chú minh bạch nguồn ở cuối bài viết",
+      "keywords": ["nguồn", "minh bạch", "biên tập"],
+      "source": "theme",
+      "content": [
         {
-          "type": "component",
-          "componentId": "core:search",
-          "title": "Search"
+          "_type": "block",
+          "_key": "source-note-heading",
+          "style": "h3",
+          "children": [{ "_type": "span", "_key": "source-note-heading-text", "text": "Về nguồn tin" }]
         },
         {
-          "type": "component",
-          "componentId": "core:categories",
-          "title": "Categories"
-        },
-        {
-          "type": "component",
-          "componentId": "core:recent-posts",
-          "title": "Recent Posts",
-          "props": {
-            "count": 5
-          }
+          "_type": "block",
+          "_key": "source-note-body",
+          "style": "normal",
+          "children": [{ "_type": "span", "_key": "source-note-body-text", "text": "Bài viết được biên tập từ các nguồn đã được kiểm chứng và sẽ được cập nhật khi có thông tin mới." }]
         }
       ]
     }
   ],
   "content": {
+    "articles": [
+      {
+        "id": "article-city-transit",
+        "slug": "thanh-pho-mo-rong-giao-thong-cong-cong",
+        "status": "published",
+        "data": {
+          "title": "Thành phố mở rộng mạng lưới giao thông công cộng",
+          "excerpt": "Các tuyến kết nối mới hướng tới giảm thời gian di chuyển và tạo thêm lựa chọn cho người dân.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "transit-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "transit-lead-text", "text": "Kế hoạch mở rộng mạng lưới giao thông công cộng tập trung vào các khu vực có tốc độ đô thị hóa nhanh và nhu cầu đi lại lớn." }]
+            },
+            {
+              "_type": "block",
+              "_key": "transit-heading",
+              "style": "h2",
+              "children": [{ "_type": "span", "_key": "transit-heading-text", "text": "Ưu tiên khả năng kết nối" }]
+            },
+            {
+              "_type": "block",
+              "_key": "transit-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "transit-body-text", "text": "Các điểm trung chuyển sẽ được bố trí gần khu dân cư, trường học và bệnh viện. Cơ quan quản lý cho biết sẽ tiếp tục lấy ý kiến cộng đồng trước khi hoàn thiện lộ trình." }]
+            }
+          ],
+          "is_breaking": true,
+          "is_featured": true,
+          "location": "TP.HCM"
+        },
+        "bylines": [{ "byline": "byline-newsroom" }],
+        "taxonomies": { "category": ["thoi-su"], "region": ["viet-nam"], "tag": ["moi-truong"] }
+      },
+      {
+        "id": "article-market-outlook",
+        "slug": "doanh-nghiep-tap-trung-vao-tang-truong-ben-vung",
+        "status": "published",
+        "data": {
+          "title": "Doanh nghiệp tập trung vào tăng trưởng bền vững",
+          "excerpt": "Chuyển đổi số và sử dụng năng lượng hiệu quả đang trở thành hai ưu tiên trong kế hoạch kinh doanh mới.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "market-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "market-lead-text", "text": "Nhiều doanh nghiệp đang điều chỉnh chiến lược để cân bằng giữa hiệu quả vận hành, tăng trưởng dài hạn và trách nhiệm với cộng đồng." }]
+            },
+            {
+              "_type": "block",
+              "_key": "market-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "market-body-text", "text": "Các chuyên gia nhận định dữ liệu minh bạch và năng lực thích ứng sẽ là lợi thế cạnh tranh quan trọng trong giai đoạn tiếp theo." }]
+            }
+          ],
+          "is_breaking": false,
+          "is_featured": true,
+          "location": "Hà Nội"
+        },
+        "bylines": [{ "byline": "byline-economy" }],
+        "taxonomies": { "category": ["kinh-te"], "region": ["viet-nam"], "tag": ["thi-truong", "moi-truong"] }
+      },
+      {
+        "id": "article-ai-newsroom",
+        "slug": "tri-tue-nhan-tao-thay-doi-cach-toa-soan-lam-viec",
+        "status": "published",
+        "data": {
+          "title": "Trí tuệ nhân tạo thay đổi cách tòa soạn làm việc",
+          "excerpt": "Công cụ mới hỗ trợ tổng hợp dữ liệu nhanh hơn, nhưng vai trò kiểm chứng của phóng viên vẫn là trung tâm.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "ai-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "ai-lead-text", "text": "Các tòa soạn đang thử nghiệm trí tuệ nhân tạo trong những công việc lặp lại như phiên âm, phân loại tài liệu và gợi ý dữ liệu liên quan." }]
+            },
+            {
+              "_type": "block",
+              "_key": "ai-heading",
+              "style": "h2",
+              "children": [{ "_type": "span", "_key": "ai-heading-text", "text": "Con người chịu trách nhiệm cuối cùng" }]
+            },
+            {
+              "_type": "block",
+              "_key": "ai-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "ai-body-text", "text": "Mọi nội dung trước khi xuất bản vẫn cần được biên tập viên kiểm tra về tính chính xác, ngữ cảnh và tác động xã hội." }]
+            }
+          ],
+          "is_breaking": false,
+          "is_featured": true,
+          "location": "Singapore"
+        },
+        "bylines": [{ "byline": "byline-technology" }],
+        "taxonomies": { "category": ["cong-nghe"], "region": ["quoc-te"], "tag": ["tri-tue-nhan-tao"] }
+      },
+      {
+        "id": "article-community-library",
+        "slug": "thu-vien-cong-dong-mo-them-khong-gian-doc",
+        "status": "published",
+        "data": {
+          "title": "Thư viện cộng đồng mở thêm không gian đọc",
+          "excerpt": "Không gian mới phục vụ miễn phí, có khu vực dành riêng cho trẻ em và các buổi trao đổi cuối tuần.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "library-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "library-lead-text", "text": "Mô hình thư viện cộng đồng được mở rộng với mục tiêu đưa sách và hoạt động học tập đến gần hơn với cư dân địa phương." }]
+            },
+            {
+              "_type": "block",
+              "_key": "library-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "library-body-text", "text": "Ngoài khu vực đọc sách, thư viện còn tổ chức những buổi hướng dẫn kỹ năng tìm kiếm thông tin và sử dụng internet an toàn." }]
+            }
+          ],
+          "is_breaking": false,
+          "is_featured": false,
+          "location": "Đà Nẵng"
+        },
+        "bylines": [{ "byline": "byline-newsroom" }],
+        "taxonomies": { "category": ["doi-song"], "region": ["viet-nam"], "tag": ["giao-duc"] }
+      },
+      {
+        "id": "article-youth-football",
+        "slug": "giai-bong-da-tre-khoi-tranh-cuoi-tuan",
+        "status": "published",
+        "data": {
+          "title": "Giải bóng đá trẻ khởi tranh cuối tuần",
+          "excerpt": "Giải đấu quy tụ các đội trẻ từ nhiều địa phương và chú trọng phát triển kỹ năng thi đấu dài hạn.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "football-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "football-lead-text", "text": "Ban tổ chức cho biết giải đấu năm nay tăng số trận và bổ sung các chương trình huấn luyện dành cho cầu thủ trẻ." }]
+            },
+            {
+              "_type": "block",
+              "_key": "football-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "football-body-text", "text": "Các trận đấu được tổ chức vào cuối tuần để học sinh có thể cân bằng giữa tập luyện và học tập." }]
+            }
+          ],
+          "is_breaking": false,
+          "is_featured": false,
+          "location": "Bình Dương"
+        },
+        "bylines": [{ "byline": "byline-newsroom" }],
+        "taxonomies": { "category": ["the-thao"], "region": ["viet-nam"], "tag": ["bong-da"] }
+      },
+      {
+        "id": "article-climate-research",
+        "slug": "nghien-cuu-moi-ve-thich-ung-khi-hau-tai-do-thi",
+        "status": "published",
+        "data": {
+          "title": "Nghiên cứu mới về thích ứng khí hậu tại đô thị",
+          "excerpt": "Các nhà khoa học đề xuất tăng diện tích cây xanh và cải thiện khả năng thoát nước tại những khu vực đông dân.",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "climate-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "climate-lead-text", "text": "Nghiên cứu so sánh dữ liệu từ nhiều thành phố và chỉ ra rằng những giải pháp dựa vào tự nhiên có thể giảm tác động của nắng nóng cực đoan." }]
+            },
+            {
+              "_type": "block",
+              "_key": "climate-body",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "climate-body-text", "text": "Nhóm nghiên cứu khuyến nghị các địa phương tích hợp dữ liệu khí hậu vào quy hoạch và công khai tiến độ thực hiện cho cộng đồng." }]
+            }
+          ],
+          "is_breaking": false,
+          "is_featured": false,
+          "location": "Tokyo"
+        },
+        "bylines": [{ "byline": "byline-newsroom" }],
+        "taxonomies": { "category": ["xa-hoi"], "region": ["quoc-te"], "tag": ["moi-truong"] }
+      }
+    ],
     "pages": [
       {
-        "id": "about",
+        "id": "page-about",
         "slug": "about",
         "status": "published",
         "data": {
-          "title": "About",
+          "title": "Giới thiệu Dòng Tin",
           "content": [
             {
               "_type": "block",
+              "_key": "about-lead",
               "style": "normal",
-              "children": [
-                {
-                  "_type": "span",
-                  "text": "This is the about page. Edit it in the admin panel or replace this template with your own design.",
-                  "_key": "k1"
-                }
-              ],
-              "_key": "k0"
+              "children": [{ "_type": "span", "_key": "about-lead-text", "text": "Dòng Tin là dự án CMS báo chí mẫu được xây dựng bằng Astro và EmDash, tập trung vào trải nghiệm đọc rõ ràng và quy trình biên tập minh bạch." }]
             }
           ]
         }
-      }
-    ],
-    "posts": [
+      },
       {
-        "id": "post-1",
-        "slug": "welcome",
+        "id": "page-editorial-policy",
+        "slug": "editorial-policy",
         "status": "published",
         "data": {
-          "title": "Welcome",
-          "excerpt": "Your first post. Replace this with your own content.",
+          "title": "Nguyên tắc biên tập",
           "content": [
             {
               "_type": "block",
+              "_key": "policy-lead",
               "style": "normal",
-              "children": [
-                {
-                  "_type": "span",
-                  "text": "This is a starter post. The templates in this project show the basic patterns for querying and rendering EmDash content. Replace them with your own design.",
-                  "_key": "k1"
-                }
-              ],
-              "_key": "k0"
-            },
-            {
-              "_type": "block",
-              "style": "h2",
-              "children": [
-                {
-                  "_type": "span",
-                  "text": "What to do next",
-                  "_key": "k3"
-                }
-              ],
-              "_key": "k2"
-            },
-            {
-              "_type": "block",
-              "style": "normal",
-              "children": [
-                {
-                  "_type": "span",
-                  "text": "Open the admin panel to add content, or edit the Astro pages in src/pages to change how content is displayed.",
-                  "_key": "k5"
-                }
-              ],
-              "_key": "k4"
+              "children": [{ "_type": "span", "_key": "policy-lead-text", "text": "Mọi bài viết cần phân biệt rõ dữ kiện và nhận định, ghi nguồn khi sử dụng thông tin bên ngoài, đồng thời cập nhật công khai khi có sai sót." }]
             }
           ]
-        },
-        "taxonomies": {
-          "category": ["general"],
-          "tag": ["starter", "example"]
+        }
+      },
+      {
+        "id": "page-contact",
+        "slug": "contact",
+        "status": "published",
+        "data": {
+          "title": "Liên hệ",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "contact-lead",
+              "style": "normal",
+              "children": [{ "_type": "span", "_key": "contact-lead-text", "text": "Gửi phản hồi và đề xuất nội dung cho Ban biên tập qua địa chỉ newsroom@example.com." }]
+            }
+          ]
         }
       }
     ]

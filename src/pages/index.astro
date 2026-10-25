@@ -1,50 +1,108 @@
 ---
-import { getEmDashCollection, getSiteSettings } from "emdash";
-import { Image } from "emdash/ui";
+import { getEmDashCollection, getSiteSettingsWithCacheHint } from "emdash";
+import ArticleCard from "../components/ArticleCard.astro";
+import NewsSidebar from "../components/NewsSidebar.astro";
 import Base from "../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
-const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
-	orderBy: { published_at: "desc" },
-	limit: 10,
-});
-const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
-	await getSiteSettings(),
-);
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+const [articlesResult, settingsResult] = await Promise.all([
+	getEmDashCollection("articles", {
+		status: "published",
+		orderBy: { published_at: "desc" },
+		limit: 24,
+	}),
+	getSiteSettingsWithCacheHint(),
+]);
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(articlesResult.cacheHint);
+	Astro.cache.set(settingsResult.cacheHint);
+}
+
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settingsResult.data);
+const articles = articlesResult.entries;
+const breakingArticles = articles.filter((article) => article.data.is_breaking);
+const leadArticle = articles.find((article) => article.data.is_featured) ?? articles[0];
+const featuredArticles = articles
+	.filter((article) => article.data.is_featured && article.id !== leadArticle?.id)
+	.slice(0, 2);
+const latestArticles = articles
+	.filter((article) => article.id !== leadArticle?.id)
+	.slice(0, 9);
 ---
 
 <Base title={siteTitle} description={siteTagline}>
-	<h1>Recent Posts</h1>
-
 	{
-		posts.length === 0 ? (
-			<p>
-				No posts yet. <a href="/_emdash/admin/content/posts/new">Create one</a>.
-			</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<div {...post.edit.featured_image}><Image image={post.data.featured_image} /></div>
-							)}
-							<h2 {...post.edit.title}>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p {...post.edit.excerpt}>{post.data.excerpt}</p>}
-						{post.data.publishedAt && (
-							<time datetime={post.data.publishedAt.toISOString()}>
-								{post.data.publishedAt.toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-								})}
-							</time>
-						)}
-					</li>
-				))}
-			</ul>
+		breakingArticles.length > 0 && (
+			<section class="breaking-strip" aria-label="Tin nóng">
+				<div class="container breaking-strip__inner">
+					<strong>Tin nóng</strong>
+					<a href={`/articles/${breakingArticles[0].id}`}>
+						{breakingArticles[0].data.title}
+					</a>
+				</div>
+			</section>
 		)
 	}
+
+	<div class="container page-shell">
+		{
+			articles.length === 0 ? (
+				<section class="empty-state">
+					<h1>Chưa có bài viết</h1>
+					<p>Hãy tạo bài đầu tiên trong EmDash Admin.</p>
+					<a class="button-link" href="/_emdash/admin/content/articles/new">Tạo bài viết</a>
+				</section>
+			) : (
+				<>
+					<section class="lead-layout" aria-label="Tin nổi bật">
+						{leadArticle && <ArticleCard article={leadArticle} featured />}
+						<div class="lead-layout__secondary">
+							{featuredArticles.map((article) => <ArticleCard article={article} />)}
+						</div>
+					</section>
+
+					<div class="content-with-sidebar home-content">
+						<section>
+							<div class="section-heading">
+								<div>
+									<p class="eyebrow">Dòng thời sự</p>
+									<h2>Tin mới nhất</h2>
+								</div>
+								<a href="/articles">Xem tất cả</a>
+							</div>
+							<div class="article-grid">
+								{latestArticles.map((article) => <ArticleCard article={article} />)}
+							</div>
+						</section>
+						<NewsSidebar />
+					</div>
+				</>
+			)
+		}
+	</div>
 </Base>
+
+<style>
+	.breaking-strip { background: var(--color-accent); color: white; }
+	.breaking-strip__inner { display: flex; gap: 1rem; align-items: center; min-height: 44px; }
+	.breaking-strip strong { flex: 0 0 auto; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+	.breaking-strip a { overflow: hidden; color: white; font-weight: 700; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+	.lead-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: clamp(1.5rem, 4vw, 3rem); padding-bottom: clamp(2.5rem, 5vw, 4rem); border-bottom: 1px solid var(--color-border); }
+	.lead-layout__secondary { display: grid; gap: 2rem; }
+	.home-content { margin-top: clamp(2.5rem, 5vw, 4rem); }
+	.section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 4px solid var(--color-ink); }
+	.section-heading h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.8rem); }
+	.section-heading .eyebrow { margin-bottom: .25rem; }
+	.section-heading > a { flex: 0 0 auto; font-weight: 800; }
+	.home-content .article-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+	@media (max-width: 850px) {
+		.lead-layout { grid-template-columns: 1fr; }
+		.lead-layout__secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	}
+
+	@media (max-width: 620px) {
+		.lead-layout__secondary, .home-content .article-grid { grid-template-columns: 1fr; }
+	}
+</style>

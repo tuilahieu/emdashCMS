@@ -2,8 +2,18 @@
 import Base from "../layouts/Base.astro";
 ---
 
-<Base title="Not Found">
-	<h1>Page not found</h1>
-	<p>The page you're looking for doesn't exist.</p>
-	<a href="/">Go home</a>
+<Base title="Không tìm thấy trang">
+	<div class="container page-shell not-found">
+		<p class="not-found__code">404</p>
+		<h1>Không tìm thấy trang</h1>
+		<p>Nội dung có thể đã được chuyển, đổi địa chỉ hoặc không còn tồn tại.</p>
+		<a class="button-link" href="/">Về trang chủ</a>
+	</div>
 </Base>
+
+<style>
+	.not-found { min-height: 55vh; text-align: center; }
+	.not-found__code { margin: 0; color: var(--color-accent); font-family: var(--font-display); font-size: clamp(5rem, 20vw, 12rem); font-weight: 900; line-height: .8; }
+	.not-found h1 { margin: 1rem 0 0; font-family: var(--font-display); font-size: 2.4rem; }
+	.not-found > p:not(.not-found__code) { color: var(--color-muted); }
+</style>

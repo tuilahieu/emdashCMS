@@ -1,10 +1,10 @@
 {
-  "name": "emdash",
+  "name": "dong-tin-news-cms",
   "version": "0.0.3",
   "private": true,
   "type": "module",
   "emdash": {
-    "label": "Starter",
+    "label": "Dòng Tin Newsroom",
     "seed": "seed/seed.json"
   },
   "scripts": {
@@ -12,7 +12,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "astro build && wrangler deploy",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "seed:validate": "emdash seed seed/seed.json --validate",
+    "check": "npm run seed:validate && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.1",

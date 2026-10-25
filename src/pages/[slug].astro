@@ -1,24 +1,29 @@
 ---
-import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
+import {
+	decodeSlug,
+	getEmDashEntry,
+	getSeoMeta,
+	getSiteSettingsWithCacheHint,
+} from "emdash";
 import { PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.rewrite("/404");
 
-if (!slug) {
-	return Astro.rewrite("/404");
+const [{ entry: page, cacheHint }, settingsResult] = await Promise.all([
+	getEmDashEntry("pages", slug),
+	getSiteSettingsWithCacheHint(),
+]);
+if (!page) return Astro.rewrite("/404");
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(cacheHint);
+	Astro.cache.set(settingsResult.cacheHint);
 }
 
-const { entry: page, cacheHint } = await getEmDashEntry("pages", slug);
-
-if (!page) {
-	return Astro.rewrite("/404");
-}
-
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
-
+const { siteTitle } = resolveStarterSiteIdentity(settingsResult.data);
 const seo = getSeoMeta(page, {
 	siteTitle,
 	siteUrl: Astro.url.origin,
@@ -33,9 +38,15 @@ const seo = getSeoMeta(page, {
 	canonical={seo.canonical}
 	content={{ collection: "pages", id: page.data.id, slug }}
 >
-	<article>
-		<h1 {...page.edit.title}>{page.data.title}</h1>
-
-		<PortableText value={page.data.content} />
-	</article>
+	<div class="container page-shell standard-page">
+		<p class="eyebrow">Dòng Tin</p>
+		<h1 class="page-heading" {...page.edit.title}>{page.data.title}</h1>
+		<div class="prose" {...page.edit.content}>
+			<PortableText value={page.data.content} />
+		</div>
+	</div>
 </Base>
+
+<style>
+	.standard-page { max-width: 900px; }
+</style>

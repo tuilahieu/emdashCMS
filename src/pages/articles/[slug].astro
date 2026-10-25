@@ -1,0 +1,147 @@
+---
+import {
+	decodeSlug,
+	getEmDashCollection,
+	getEmDashEntry,
+	getSeoMeta,
+	getSiteSettingsWithCacheHint,
+} from "emdash";
+import { Image, PortableText } from "emdash/ui";
+import ArticleCard from "../../components/ArticleCard.astro";
+import NewsSidebar from "../../components/NewsSidebar.astro";
+import Base from "../../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.rewrite("/404");
+
+const [{ entry: article, cacheHint }, settingsResult] = await Promise.all([
+	getEmDashEntry("articles", slug),
+	getSiteSettingsWithCacheHint(),
+]);
+if (!article) return Astro.rewrite("/404");
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(cacheHint);
+	Astro.cache.set(settingsResult.cacheHint);
+}
+
+const { siteTitle } = resolveStarterSiteIdentity(settingsResult.data);
+const seo = getSeoMeta(article, {
+	siteTitle,
+	siteUrl: Astro.url.origin,
+	path: Astro.url.pathname.replace(/\/$/, ""),
+	defaultDescription: article.data.excerpt,
+});
+
+const categories = article.data.terms?.category ?? [];
+const regions = article.data.terms?.region ?? [];
+const tags = article.data.terms?.tag ?? [];
+const primaryCategory = categories[0];
+const relatedResult = primaryCategory
+	? await getEmDashCollection("articles", {
+			status: "published",
+			where: { category: primaryCategory.slug },
+			orderBy: { published_at: "desc" },
+			limit: 4,
+		})
+	: null;
+if (Astro.cache?.enabled && relatedResult) Astro.cache.set(relatedResult.cacheHint);
+const relatedArticles = (relatedResult?.entries ?? []).filter((item) => item.id !== article.id).slice(0, 3);
+const publishedDate = article.data.publishedAt?.toLocaleDateString("vi-VN", {
+	weekday: "long",
+	day: "2-digit",
+	month: "2-digit",
+	year: "numeric",
+});
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+	content={{ collection: "articles", id: article.data.id, slug }}
+>
+	<div class="container page-shell">
+		<div class="content-with-sidebar article-layout">
+			<article class="article-detail">
+				<div class="article-detail__taxonomies">
+					{categories.map((term) => <a href={`/category/${term.slug}`}>{term.label}</a>)}
+					{regions.map((term) => <a href={`/region/${term.slug}`}>{term.label}</a>)}
+				</div>
+				<h1 {...article.edit.title}>{article.data.title}</h1>
+				<p class="article-detail__excerpt" {...article.edit.excerpt}>{article.data.excerpt}</p>
+				<div class="article-detail__byline">
+					<span>{article.data.byline?.displayName ?? "Ban biên tập Dòng Tin"}</span>
+					{publishedDate && <time datetime={article.data.publishedAt?.toISOString()}>{publishedDate}</time>}
+					{article.data.location && <span {...article.edit.location}>{article.data.location}</span>}
+				</div>
+
+				{
+					article.data.featured_image && (
+						<figure {...article.edit.featured_image}>
+							<Image image={article.data.featured_image} />
+							{article.data.featured_image.caption && <figcaption>{article.data.featured_image.caption}</figcaption>}
+						</figure>
+					)
+				}
+
+				<div class="prose" {...article.edit.content}>
+					<PortableText value={article.data.content} />
+				</div>
+
+				{
+					article.data.source_name && (
+						<p class="article-detail__source">
+							Nguồn: {article.data.source_url ? (
+								<a href={article.data.source_url} rel="noopener noreferrer" target="_blank">{article.data.source_name}</a>
+							) : article.data.source_name}
+						</p>
+					)
+				}
+
+				{
+					tags.length > 0 && (
+						<div class="article-detail__tags">
+							<strong>Chủ đề:</strong>
+							{tags.map((tag) => <a href={`/tag/${tag.slug}`}>#{tag.label}</a>)}
+						</div>
+					)
+				}
+			</article>
+			<NewsSidebar />
+		</div>
+
+		{
+			relatedArticles.length > 0 && (
+				<section class="related-news">
+					<p class="eyebrow">Đọc tiếp</p>
+					<h2>Tin cùng chuyên mục</h2>
+					<div class="article-grid">
+						{relatedArticles.map((item) => <ArticleCard article={item} />)}
+					</div>
+				</section>
+			)
+		}
+	</div>
+</Base>
+
+<style>
+	.article-layout { grid-template-columns: minmax(0, 760px) minmax(240px, 320px); justify-content: space-between; }
+	.article-detail__taxonomies { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+	.article-detail__taxonomies a { color: var(--color-accent); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+	.article-detail h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.4rem, 7vw, 5.4rem); letter-spacing: -.04em; line-height: .98; }
+	.article-detail__excerpt { margin: 1.5rem 0; color: #3c3b37; font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 1.55rem); line-height: 1.45; }
+	.article-detail__byline { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding-block: 1rem; border-block: 1px solid var(--color-border); color: var(--color-muted); font-size: .85rem; }
+	.article-detail__byline span:first-child { color: var(--color-ink); font-weight: 800; }
+	figure { margin: 2rem 0; }
+	figure :global(img) { display: block; width: 100%; border-radius: var(--radius-md); }
+	figcaption { margin-top: .5rem; color: var(--color-muted); font-size: .8rem; }
+	.article-detail__source { margin-top: 2rem; padding: 1rem; border-left: 4px solid var(--color-border); background: var(--color-surface); }
+	.article-detail__tags { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+	.article-detail__tags a { text-decoration: none; }
+	.related-news { margin-top: 4rem; padding-top: 2rem; border-top: 4px solid var(--color-ink); }
+	.related-news h2 { margin: 0 0 1.5rem; font-family: var(--font-display); font-size: 2rem; }
+</style>

@@ -1,0 +1,132 @@
+---
+import type { ContentEntry, InferCollectionData } from "emdash";
+import { Image } from "emdash/ui";
+
+interface Props {
+	article: ContentEntry<InferCollectionData<"articles">>;
+	featured?: boolean;
+	compact?: boolean;
+}
+
+const { article, featured = false, compact = false } = Astro.props;
+const category = article.data.terms?.category?.[0];
+const date = article.data.publishedAt?.toLocaleDateString("vi-VN", {
+	day: "2-digit",
+	month: "2-digit",
+	year: "numeric",
+});
+---
+
+<article class:list={["article-card", { featured, compact }]}>
+	<a class="article-card__media" href={`/articles/${article.id}`} aria-label={article.data.title}>
+		{
+			article.data.featured_image ? (
+				<div {...article.edit.featured_image}>
+					<Image image={article.data.featured_image} />
+				</div>
+			) : (
+				<div class="article-card__placeholder" aria-hidden="true"></div>
+			)
+		}
+	</a>
+	<div class="article-card__body">
+		<div class="article-card__meta">
+			{category && <a href={`/category/${category.slug}`}>{category.label}</a>}
+			{date && <time datetime={article.data.publishedAt?.toISOString()}>{date}</time>}
+		</div>
+		<h2 {...article.edit.title}>
+			<a href={`/articles/${article.id}`}>{article.data.title}</a>
+		</h2>
+		{!compact && <p {...article.edit.excerpt}>{article.data.excerpt}</p>}
+	</div>
+</article>
+
+<style>
+	.article-card {
+		display: grid;
+		gap: 1rem;
+		align-content: start;
+	}
+
+	.article-card__media {
+		display: block;
+		overflow: hidden;
+		border-radius: var(--radius-md);
+		background: var(--color-ink);
+	}
+
+	.article-card__media :global(img),
+	.article-card__placeholder {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		transition: transform 180ms ease;
+	}
+
+	.article-card__placeholder {
+		display: grid;
+		place-items: center;
+		background:
+			linear-gradient(135deg, transparent 45%, rgba(255,255,255,.09) 45% 55%, transparent 55%),
+			var(--color-ink);
+		color: white;
+		font-family: var(--font-display);
+		font-size: clamp(1rem, 3vw, 1.5rem);
+		font-weight: 800;
+		letter-spacing: .12em;
+	}
+
+	.article-card__placeholder::after { content: "DÒNG TIN"; }
+
+	.article-card__media:hover :global(img),
+	.article-card__media:hover .article-card__placeholder {
+		transform: scale(1.02);
+	}
+
+	.article-card__body {
+		display: grid;
+		gap: .55rem;
+	}
+
+	.article-card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .75rem;
+		font-size: .78rem;
+		font-weight: 700;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+	}
+
+	.article-card__meta a { color: var(--color-accent); }
+	.article-card__meta time { color: var(--color-muted); }
+
+	h2 {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: 1.35rem;
+		line-height: 1.2;
+	}
+
+	h2 a { color: var(--color-ink); text-decoration: none; }
+	h2 a:hover { color: var(--color-accent); }
+	p { margin: 0; color: var(--color-muted); }
+
+	.featured h2 { font-size: clamp(1.8rem, 4vw, 3.2rem); }
+	.featured p { font-size: 1.05rem; }
+
+	.compact {
+		grid-template-columns: 112px 1fr;
+		align-items: start;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.compact h2 { font-size: 1rem; }
+	.compact .article-card__meta { font-size: .7rem; }
+
+	@media (max-width: 520px) {
+		.compact { grid-template-columns: 92px 1fr; }
+	}
+</style>
