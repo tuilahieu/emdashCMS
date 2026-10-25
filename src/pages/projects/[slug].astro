@@ -1,0 +1,45 @@
+---
+import { decodeSlug, getEmDashEntry } from "emdash";
+import { Image } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+
+const slug = decodeSlug(Astro.params.slug);
+
+if (!slug) {
+	return Astro.rewrite("/404");
+}
+
+const { entry: project, cacheHint } =
+	await getEmDashEntry("projects", slug);
+
+if (!project) {
+	return Astro.rewrite("/404");
+}
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(cacheHint);
+}
+---
+
+<Base
+	title={project.data.title}
+	content={{
+		collection: "projects",
+		id: project.data.id,
+		slug,
+	}}
+>
+	<article>
+		<div {...project.edit.featured_image}>
+			<Image image={project.data.featured_image} />
+		</div>
+
+		<h1 {...project.edit.title}>
+			{project.data.title}
+		</h1>
+
+		<p {...project.edit.content}>
+			{project.data.content}
+		</p>
+	</article>
+</Base>

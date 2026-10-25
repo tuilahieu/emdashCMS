@@ -1,0 +1,31 @@
+---
+import { getEmDashCollection } from "emdash";
+import Base from "../../layouts/Base.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+
+const { entries: projects } =
+	await getEmDashCollection("projects");
+---
+
+<Base title="Projects">
+	<h1>Projects</h1>
+
+	<div class="project-grid">
+		{
+			projects.map((project) => (
+				<ProjectCard project={project} />
+			))
+		}
+	</div>
+</Base>
+
+<style>
+	.project-grid {
+		display: grid;
+		grid-template-columns: repeat(
+			auto-fit,
+			minmax(min(100%, 280px), 1fr)
+		);
+		gap: 1.5rem;
+	}
+</style>
